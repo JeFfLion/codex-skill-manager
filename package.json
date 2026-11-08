@@ -1,0 +1,13 @@
+{
+  "name": "codex-skill-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:sidebar": "node integration/sidebar/build.mjs",
+    "test:sidebar": "node tests/sidebar_bridge_smoke.mjs"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/ext-apps": "2.0.4",
+    "esbuild": "0.28.2"
+  }
+}

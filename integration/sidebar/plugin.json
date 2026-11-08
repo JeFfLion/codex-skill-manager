@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "skill-workspace-console",
+  "version": "0.2.0",
+  "description": "在Codex应用页内管理本机用户级和项目级技能。",
+  "author": {"name": "Skill Workspace"},
+  "extensions": {"com.openai": {"requires_local_executor": true, "interface": {
+    "displayName": "Skill 管理台", "shortDescription": "在Codex内管理本地技能",
+    "longDescription": "内嵌完整管理界面，保留变更预览与备份，不操作官方技能。",
+    "developerName": "Skill Workspace", "category": "Productivity",
+    "brandColor": "#12634e", "composerIcon": "./icon.svg", "logo": "./icon.svg"
+  }}}
+}

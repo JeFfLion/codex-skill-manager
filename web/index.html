@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Skill Workspace · Codex 技能管理</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body>
+<a class="skip" href="#main">跳转到技能列表</a>
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="Skill Workspace 首页"><span class="brand-mark" aria-hidden="true">S<span>↗</span></span><span>Skill<br><strong>Workspace</strong></span></a>
+  <p class="nav-label">工作空间</p>
+  <nav id="nav" aria-label="技能来源">
+    <button data-view="all" class="selected">全部技能 <span id="count-all">—</span></button>
+    <button data-view="library">收藏库 <span id="count-library">—</span></button>
+    <button data-view="user">用户级 <span id="count-user">—</span></button>
+    <button data-view="project">项目级 <span id="count-project">—</span></button>
+    <button data-view="backups">停用与备份 <span id="count-backups">—</span></button>
+  </nav>
+  <div class="sidebar-note"><span class="dot"></span> 本机运行<br><small>技能保存在你的电脑上<br>收藏与启用分开管理</small></div>
+  <span class="version">CODEX SKILL MANAGER / v0.1</span>
+</aside>
+<div class="workspace">
+  <header class="topbar"><span>个人工作空间 <span class="slash">/</span> <span id="breadcrumb">全部技能</span></span><button id="refresh" class="quiet">刷新扫描 <span aria-hidden="true">↻</span></button></header>
+  <main id="main">
+    <div class="heading"><div><div class="eyebrow">YOUR TOOLS, IN THE RIGHT PLACE</div><h1 id="title">技能工作台</h1><p id="subtitle">把合适的技能，放进合适的项目。</p></div><div class="heading-actions"><button id="add-project" class="secondary">手动添加项目</button><button id="import" class="primary">＋ 导入技能</button></div></div>
+    <section class="overview" aria-label="作用域概览">
+      <div><span class="stat-label">用户级技能</span><strong id="stat-user">—</strong><small>所有项目共享</small></div>
+      <div><span class="stat-label">项目级技能</span><strong id="stat-project">—</strong><small>按项目隔离</small></div>
+      <div><span class="stat-label">收藏库</span><strong id="stat-library">—</strong><small>收藏后按需启用</small></div>
+      <div class="scope-note"><span class="note-icon" aria-hidden="true">↳</span><p><strong>让上下文更专注</strong><br>专用技能可从用户级迁移至项目级。<br>仅复制到项目，不会移除用户级可见性。</p></div>
+    </section>
+    <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+    <div class="toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索技能名称、描述或路径" aria-label="搜索技能"></label><label class="project-filter"><span>项目</span><select id="project"><option value="">所有项目</option></select></label></div>
+    <p class="context-hint" id="project-status" role="status">正在读取 Codex 侧边栏项目…</p>
+    <div class="section-title"><h2 id="list-title">所有已发现技能</h2><span id="result-count">正在扫描…</span></div>
+    <p class="context-hint" id="context-hint">仅管理后添加的独立技能；官方内置技能与插件附带技能不纳入管理。</p>
+    <div id="list" class="skill-list" aria-live="polite"><div class="empty">正在读取本机技能目录…</div></div>
+    <footer><span>收藏 ≠ 启用 · 用户级全局可见 · 项目级按需发现</span><span id="data-path"></span></footer>
+  </main>
+</div>
+<dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title"></h2><button class="close quiet" aria-label="关闭对话框">×</button></div><div id="dialog-body"></div><div id="dialog-error" class="dialog-error" role="alert" hidden></div><div class="dialog-footer"><button class="close secondary">取消</button><button id="dialog-submit" class="primary">继续</button></div></dialog>
+</body></html>
