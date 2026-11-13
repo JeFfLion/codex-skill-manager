@@ -73,11 +73,19 @@ Codex 通常先载入技能名称、描述与路径，选用后再读取完整 S
 
 官方机制参考：[Build skills](https://learn.chatgpt.com/docs/build-skills)。当前文档推荐 `.agents/skills`；本机同时存在旧版 `.codex/skills`，因此做兼容扫描，实际宿主支持需在使用的 Codex 版本中验证。
 
+## 插件管理
+
+在网页或 Codex 内嵌管理台中打开「插件管理」，可查看和搜索 Codex 已安装的本地与远程目录插件，例如 Remotion。支持调整本地插件的用户级启停设置。远程目录插件的状态由 Codex 管理。此功能需要 PATH 中可用的 Codex CLI，并通过 Codex 自带的 App Server 读取目录和保存配置。完成变更后，可在 Codex 中开启新会话检查插件状态。
+
+管理台保护官方随附插件、管理台自身和由 Codex 管理的启停策略。插件列表显示的是用户级状态。安装、卸载及项目级插件设置可在 Codex 的相应入口处理。参考 [OpenAI 插件配置文档](https://developers.openai.com/plugins/build/plugins)。
+
+升级已有内嵌管理台时，先结束旧版本的本地服务，再运行 `python setup_sidebar.py` 和 `codex plugin add skill-workspace-console@skill-workspace-local`，并在 Codex 中关闭后重新启用管理台插件。
+
 ## 本地服务边界
 
 仅绑定 127.0.0.1，校验 Host、Origin 和每次启动生成的写入令牌，不提供网络托管功能。不会执行技能脚本。导入与变更拒绝包含符号链接或 Windows junction 的目录，避免通过链接修改其他文件。对其他程序同时修改文件的情形采取尽力检测，操作期间请勿同时编辑目标目录。
 
-管理台运行时不修改 Codex 配置或自动迁移技能；所有技能变更均由界面预览后执行。只有显式运行 `setup_sidebar.py --register` 才会注册侧边栏插件配置。不安装依赖或创建 Git 提交。
+技能变更均由界面预览后执行。插件启停需要在界面确认，再由 Codex 写入用户级设置。运行 `setup_sidebar.py --register` 会注册侧边栏管理台插件。
 
 ## 验证
 
@@ -91,7 +99,6 @@ python -m unittest discover -s tests -v
 
 ## 后续范围
 
-- 保持官方内置与插件内容不纳管；后续功能仅针对后添加的独立技能。
 - 扫描指定工作目录到 Git 根目录的嵌套技能发现链。
 - 支持项目清单导出、技能组合、版本更新与变更记录。
 - 对 SKILL.md 增加完整 YAML 校验；目前仅读取常见 frontmatter 子集，文件内容原样保留。

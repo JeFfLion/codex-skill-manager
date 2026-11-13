@@ -41,6 +41,7 @@ bridge.oninitialized = () => {
   void bridge.sendToolResult({ content: [{ type: 'text', text: 'Skill 管理台入口已打开。' }] })
     .catch(error => fixture.errors.push(String(error)));
 };
+let pluginEnabled = true;
 bridge.oncalltool = async params => {
   if (!fixture.initialized) throw new Error('Tool invoked before UI initialized notification');
   if (params.name !== 'console_request') throw new Error('Unexpected tool: '+params.name);
@@ -52,6 +53,16 @@ bridge.oncalltool = async params => {
   else if(path.startsWith('detail?')) data={content:'示例完整 SKILL.md'};
   else if(path==='plan') data={token:'preview',source:'C:/skills/demo',target:'C:/project/.agents/skills/demo',effect:'仅项目可见'};
   else if(path==='apply') data={message:'内嵌操作完成'};
+  else if(path==='plugins') data={plugins:[
+    {id:'demo@local',name:'示例插件',description:'内嵌插件测试',enabled:pluginEnabled,editable:true},
+    {id:'remotion@openai-curated-remote',name:'Remotion',enabled:true,editable:false,remote:true},
+  ]};
+  else if(path==='plugin-state') {
+    const body = params.arguments.body;
+    if (body.id !== 'demo@local' || body.expected !== pluginEnabled) throw new Error('Unexpected plugin change');
+    pluginEnabled = body.enabled;
+    data={message:'插件设置已保存。'};
+  }
   else throw new Error('Unknown path');
   return {structuredContent:data,content:[{type:'text',text:'OK'}]};
 };

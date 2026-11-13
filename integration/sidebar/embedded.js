@@ -1,5 +1,5 @@
 import { App } from '@modelcontextprotocol/ext-apps';
-const app = new App({ name: 'Skill Workspace', version: '0.2.0' }, {}, { strict: true, autoResize: false });
+const app = new App({ name: 'Skill Workspace', version: '0.2.2' }, {}, { strict: true, autoResize: false });
 app.ontoolinput = () => {};
 app.ontoolresult = () => {};
 window.skillWorkspaceRequest = async (path, body) => {

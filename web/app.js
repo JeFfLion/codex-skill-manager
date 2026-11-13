@@ -1,8 +1,9 @@
 'use strict';
 const $ = selector => document.querySelector(selector);
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const labels = {all:'全部技能',library:'收藏库',user:'用户级',project:'项目级',backups:'停用与备份'};
+const labels = {all:'全部技能',library:'收藏库',user:'用户级',project:'项目级',backups:'停用与备份',plugins:'插件管理'};
 let state = {skills:[],projects:[],backups:[]}, view = 'all', submitAction;
+let plugins = null, pluginError = '', pluginRequest;
 const dialog = $('#dialog');
 async function api(path, body) {
   if (document.documentElement.hasAttribute('data-embedded')) {
@@ -17,6 +18,7 @@ async function api(path, body) {
 }
 function notice(message, error=false) { const box=$('#status'); box.textContent=message; box.classList.toggle('error',error); box.hidden=false; }
 async function refresh() {
+  if (view === 'plugins') return refreshPlugins();
   const button=$('#refresh'); button.disabled=true;
   try {
     const project=$('#project').value;
@@ -33,12 +35,59 @@ async function refresh() {
   } catch(error) {notice(error.message,true);$('#list').innerHTML='<div class="empty">扫描失败，请点击右上角重新扫描。</div>';}
   finally {button.disabled=false;}
 }
+function refreshPlugins() {
+  if (pluginRequest) return pluginRequest;
+  pluginError = '';
+  pluginRequest = api('plugins').then(result => {
+    plugins = result.plugins;
+    if (result.token) state.token = result.token;
+    $('#count-plugins').textContent = plugins.length;
+  }).catch(error => {
+    pluginError = error.message;
+    plugins = null;
+    $('#count-plugins').textContent = '—';
+  }).finally(() => {
+    pluginRequest = null;
+    if (view === 'plugins') render();
+  });
+  if (view === 'plugins') render();
+  return pluginRequest;
+}
+function renderPlugins(query) {
+  $('#subtitle').textContent = '查看 Codex 已安装的插件，调整本地插件的用户级启停设置。';
+  $('#context-hint').textContent = '远程目录插件的状态由 Codex 管理。官方内置插件和本管理台入口受到保护。';
+  const items = (plugins || []).filter(plugin =>
+    [plugin.name, plugin.description, plugin.id].join(' ').toLowerCase().includes(query));
+  $('#result-count').textContent = pluginRequest ? '正在读取…' : pluginError ? '读取失败' : items.length + ' 项';
+  if (pluginRequest || pluginError || !items.length) {
+    const message = pluginRequest ? '正在读取 Codex 插件…'
+      : pluginError || (query ? '没有匹配的插件。' : '暂无已安装的插件。');
+    $('#list').innerHTML = '<div class="empty">' + escapeHTML(message) + '</div>';
+    return;
+  }
+  $('#list').innerHTML = items.map(plugin => `<article class="skill-row">
+    <div class="skill-icon" aria-hidden="true">◇</div>
+    <div><div class="skill-name"><strong>${escapeHTML(plugin.name)}</strong><span class="badge ${plugin.enabled ? '' : 'plugin'}">${plugin.enabled ? '已启用' : '已停用'}</span></div>
+    <p class="description">${escapeHTML(plugin.description)}</p>
+    <div class="path">${escapeHTML(plugin.id)}${plugin.version ? ' · ' + escapeHTML(plugin.version) : ''}</div></div>
+    <div class="row-actions">${plugin.editable
+      ? `<button class="install" data-action="plugin-state" data-id="${escapeHTML(plugin.id)}" aria-label="${plugin.enabled ? '停用' : '启用'} ${escapeHTML(plugin.name)}">${plugin.enabled ? '停用' : '启用'}</button>`
+      : `<span class="badge plugin">${plugin.remote ? '远程目录' : '由 Codex 管理'}</span>`}</div>
+  </article>`).join('');
+}
 function render() {
   const query=$('#search').value.toLowerCase(),project=$('#project').value;
+  const pluginView = view === 'plugins';
+  for (const selector of ['.heading-actions', '.overview', '.project-filter', '#project-status', '#scope-footer']) {
+    $(selector).hidden = pluginView;
+  }
+  $('#search').placeholder = pluginView ? '搜索插件名称、描述或来源' : '搜索技能名称、描述或路径';
+  $('#search').setAttribute('aria-label', pluginView ? '搜索插件' : '搜索技能');
   $('#breadcrumb').textContent=labels[view];
   $('#title').textContent=view==='all'?'技能工作台':labels[view];
   $('#subtitle').textContent=view==='backups'?'停用时保留完整文件，可恢复到原始位置。':'把合适的技能，放进合适的项目。';
   $('#list-title').textContent=view==='all'?'所有已发现技能':labels[view];
+  if (pluginView) return renderPlugins(query);
   $('#context-hint').textContent=project?'显示该项目根目录与用户级的后添加技能；官方内置技能和插件附带技能不纳入管理。':'仅管理后添加的独立技能；官方内置技能与插件附带技能不纳入管理。';
   let items;
   if(view==='backups') {
@@ -74,7 +123,17 @@ $('#dialog-submit').addEventListener('click',async()=>{
   finally {button.disabled=false;}
 });
 document.querySelectorAll('.close').forEach(button=>button.addEventListener('click',()=>dialog.close()));
-$('#nav').addEventListener('click',event=>{const button=event.target.closest('[data-view]');if(!button)return;view=button.dataset.view;document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('selected',b===button);b.setAttribute('aria-current',b===button?'page':'false');});render();});
+$('#nav').addEventListener('click',event=>{
+  const button=event.target.closest('[data-view]');if(!button)return;
+  if ((view === 'plugins') !== (button.dataset.view === 'plugins')) {
+    $('#search').value = '';
+    $('#status').hidden = true;
+  }
+  view=button.dataset.view;
+  document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('selected',b===button);b.setAttribute('aria-current',b===button?'page':'false');});
+  if (view === 'plugins') refreshPlugins();
+  else render();
+});
 $('#search').addEventListener('input',render);$('#project').addEventListener('change',render);$('#refresh').addEventListener('click',refresh);
 $('#add-project').addEventListener('click',()=>openDialog('手动添加项目','<label class="field">项目文件夹绝对路径<input id="project-path" placeholder="D:\\projects\\my-app" autocomplete="off"></label><p class="help">Codex 侧边栏项目已自动读取。此处可补充其他本机文件夹，不会修改项目文件。</p>','添加项目',async()=>{const path=$('#project-path').value.trim();if(!path)throw new Error('请输入项目路径。');await api('projects',{path});dialog.close();notice('项目已添加。');await refresh();}));
 $('#import').addEventListener('click',()=>openDialog('导入技能到收藏库','<label class="field">技能文件夹绝对路径<input id="import-path" placeholder="D:\\skills\\my-skill" autocomplete="off"></label><p class="help">文件夹应包含 SKILL.md。脚本、引用和资源会一同复制，原文件保留。收藏库不参与 Codex 自动发现。</p>','预览导入',()=>{const path=$('#import-path').value.trim();if(!path)throw new Error('请输入技能文件夹路径。');return preview({operation:'import',path});}));
@@ -82,6 +141,19 @@ $('#list').addEventListener('click',async event=>{
   const button=event.target.closest('[data-action]');if(!button)return;
   const {action,id}=button.dataset;
   try {
+    if (action === 'plugin-state') {
+      const plugin = plugins?.find(item => item.id === id);
+      if (!plugin?.editable) return;
+      const verb = plugin.enabled ? '停用' : '启用';
+      openDialog(verb + '插件', `<p class="help">在 Codex 用户级设置中${verb}「${escapeHTML(plugin.name)}」。</p>`, verb, async () => {
+        const result = await api('plugin-state', {id, enabled: !plugin.enabled, expected: plugin.enabled});
+        dialog.close();
+        notice(result.message);
+        await refreshPlugins();
+        $('#list').querySelector(`[data-id="${CSS.escape(id)}"]`)?.focus();
+      });
+      return;
+    }
     if(action==='detail'){const item=state.skills.find(s=>s.id===id),result=await api('detail?id='+encodeURIComponent(id));openDialog(item.name,`<pre>${escapeHTML(result.content)}</pre>`,'',null);return;}
     if(action==='disable'||action==='restore'){await preview(action==='restore'?{operation:'restore',backupId:id}:{operation:'disable',skillId:id});return;}
     const migrate=action==='migrate';

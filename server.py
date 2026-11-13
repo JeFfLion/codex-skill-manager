@@ -8,6 +8,7 @@ import socket
 from urllib.parse import urlparse, parse_qs
 
 from manager import Manager, ManagerError
+from plugin_manager import plugin_inventory, set_plugin_state
 
 ROOT = Path(__file__).resolve().parent
 
@@ -48,6 +49,8 @@ def create_server(port=8765, manager=None):
             try:
                 if parsed.path == '/api/health':
                     return self.respond(200, {'service': 'codex-skill-workspace', 'version': '0.1.0'})
+                if parsed.path == '/api/plugins':
+                    return self.respond(200, dict(plugin_inventory(), token=token))
                 with model.lock:
                     if parsed.path == '/api/state':
                         return self.respond(200, dict(model.inventory(), token=token))
@@ -81,6 +84,8 @@ def create_server(port=8765, manager=None):
                         result = model.plan(body)
                     elif self.path == '/api/apply':
                         result = model.apply(body.get('token', ''))
+                    elif self.path == '/api/plugin-state':
+                        result = set_plugin_state(body)
                     else:
                         return self.respond(404, {'error': '接口不存在。'})
                 self.respond(200, result)

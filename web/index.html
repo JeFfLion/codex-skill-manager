@@ -2,16 +2,17 @@
 <html lang="zh-CN">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Skill Workspace · Codex 技能管理</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
 <body>
-<a class="skip" href="#main">跳转到技能列表</a>
+<a class="skip" href="#main">跳转到管理列表</a>
 <aside class="sidebar">
   <a class="brand" href="/" aria-label="Skill Workspace 首页"><span class="brand-mark" aria-hidden="true">S<span>↗</span></span><span>Skill<br><strong>Workspace</strong></span></a>
   <p class="nav-label">工作空间</p>
-  <nav id="nav" aria-label="技能来源">
+  <nav id="nav" aria-label="工作空间导航">
     <button data-view="all" class="selected">全部技能 <span id="count-all">—</span></button>
     <button data-view="library">收藏库 <span id="count-library">—</span></button>
     <button data-view="user">用户级 <span id="count-user">—</span></button>
     <button data-view="project">项目级 <span id="count-project">—</span></button>
     <button data-view="backups">停用与备份 <span id="count-backups">—</span></button>
+    <button data-view="plugins">插件管理 <span id="count-plugins">—</span></button>
   </nav>
   <div class="sidebar-note"><span class="dot"></span> 本机运行<br><small>技能保存在你的电脑上<br>收藏与启用分开管理</small></div>
   <span class="version">CODEX SKILL MANAGER / v0.1</span>
@@ -32,7 +33,7 @@
     <div class="section-title"><h2 id="list-title">所有已发现技能</h2><span id="result-count">正在扫描…</span></div>
     <p class="context-hint" id="context-hint">仅管理后添加的独立技能；官方内置技能与插件附带技能不纳入管理。</p>
     <div id="list" class="skill-list" aria-live="polite"><div class="empty">正在读取本机技能目录…</div></div>
-    <footer><span>收藏 ≠ 启用 · 用户级全局可见 · 项目级按需发现</span><span id="data-path"></span></footer>
+    <footer><span id="scope-footer">收藏 ≠ 启用 · 用户级全局可见 · 项目级按需发现</span><span id="data-path"></span></footer>
   </main>
 </div>
 <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title"></h2><button class="close quiet" aria-label="关闭对话框">×</button></div><div id="dialog-body"></div><div id="dialog-error" class="dialog-error" role="alert" hidden></div><div class="dialog-footer"><button class="close secondary">取消</button><button id="dialog-submit" class="primary">继续</button></div></dialog>

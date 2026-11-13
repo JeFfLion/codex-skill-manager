@@ -6,8 +6,9 @@ import sys
 from urllib.request import Request, build_opener, ProxyHandler
 from urllib.error import HTTPError
 
-URI = 'ui://skill-workspace/console-v3.html'
-LEGACY_URIS = {'ui://skill-workspace/launcher-v1.html', 'ui://skill-workspace/launcher-v2.html'}
+URI = 'ui://skill-workspace/console-v5.html'
+LEGACY_URIS = {'ui://skill-workspace/launcher-v1.html', 'ui://skill-workspace/launcher-v2.html',
+               'ui://skill-workspace/console-v3.html', 'ui://skill-workspace/console-v4.html'}
 TOOL = 'show_skill_console'
 LAUNCH = 'launch_skill_console'
 EMPTY = {'type': 'object', 'properties': {}, 'additionalProperties': False}
@@ -51,9 +52,9 @@ def console_request(arguments):
     if parsed.scheme or parsed.netloc or parsed.fragment:
         raise ValueError('不支持的管理台请求。')
     if body is None:
-        valid = path == 'state' or (parsed.path == 'detail' and set(parse_qs(parsed.query)) == {'id'})
+        valid = path in ('state', 'plugins') or (parsed.path == 'detail' and set(parse_qs(parsed.query)) == {'id'})
     else:
-        valid = path in ('projects', 'plan', 'apply') and isinstance(body, dict)
+        valid = path in ('projects', 'plan', 'apply', 'plugin-state') and isinstance(body, dict)
     if not valid:
         raise ValueError('不支持的管理台请求。')
     root = Path(os.environ.get('SKILL_WORKSPACE_ROOT', Path(__file__).resolve().parents[2]))
@@ -71,7 +72,7 @@ def console_request(arguments):
             result = json.load(response)
     except HTTPError as error:
         raise ValueError(json.loads(error.read()).get('error', '管理操作失败。')) from error
-    if path == 'state':
+    if path in ('state', 'plugins'):
         result.pop('token', None)
     return result
 
@@ -81,7 +82,7 @@ def dispatch(method, params):
         requested = params.get('protocolVersion')
         version = requested if requested in ('2024-11-05', '2025-03-26', '2025-06-18', '2025-11-25') else '2025-06-18'
         return {'protocolVersion': version, 'capabilities': {'tools': {}, 'resources': {}},
-                'serverInfo': {'name': 'skill-workspace-console', 'title': 'Skill 管理台', 'version': '0.2.0'}}
+                'serverInfo': {'name': 'skill-workspace-console', 'title': 'Skill 管理台', 'version': '0.2.2'}}
     if method == 'ping':
         return {}
     if method == 'tools/list':

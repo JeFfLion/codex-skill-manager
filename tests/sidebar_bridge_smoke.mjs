@@ -103,6 +103,16 @@ try {
   await evaluate(`${child}.querySelector('#dialog-submit').click()`);
   await until(`${child}.querySelector('#status').textContent==='内嵌操作完成'`,'Apply missing');
   assert((await evaluate('window.fixture.calls.map(c=>c.path)')).includes('apply'));
+  await evaluate(`${child}.querySelector('[data-view=plugins]').click()`);
+  await until(`${child}.querySelector('[data-action=plugin-state]')?.textContent==='停用'`,'Installed plugin missing');
+  assert(await evaluate(`[...${child}.querySelectorAll('.skill-row')].some(row=>row.textContent.includes('Remotion') && row.textContent.includes('远程目录') && !row.querySelector('button'))`));
+  assert(await evaluate(`getComputedStyle(${child}.querySelector('.overview')).display==='none'`));
+  await evaluate(`${child}.querySelector('[data-action=plugin-state]').click()`);
+  await until(`${child}.querySelector('dialog').open && ${child}.querySelector('#dialog-title').textContent==='停用插件'`,'Plugin confirmation missing');
+  await evaluate(`${child}.querySelector('#dialog-submit').click()`);
+  await until(`${child}.querySelector('[data-action=plugin-state]')?.textContent==='启用'`,'Plugin status failed to refresh');
+  await evaluate(`${child}.querySelector('[data-view=all]').click()`);
+  await until(`${child}.querySelector('.name-button')?.textContent==='示例技能'`,'Skill inventory missing after switching back');
   const screenshot=await cdp('Page.captureScreenshot',{format:'png'});
   await writeFile(join(output,'embedded-console.png'),Buffer.from(screenshot.data,'base64'));
   await cdp('Page.navigate',{url:baseUrl+'/?scenario=tool-error'});
